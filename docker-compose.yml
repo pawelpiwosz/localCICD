@@ -1,0 +1,68 @@
+version: "3"
+services:
+
+  sonarqube:
+    image: sonarqube:community
+    depends_on: 
+    - postgresdb
+    # restart: unless-stopped
+    env_file: .env
+    environment:
+      - SONAR_JDBC_URL=${SONAR_JDBC_URL_VAR}
+      - SONAR_JDBC_USERNAME=${SONAR_JDBC_USERNAME_VAR}
+      - SONAR_JDBC_PASSWORD=${SONAR_JDBC_PASSWORD_VAR}
+    networks:
+      - cicd
+    ports:
+      - "9000:9000"
+      - "9092:9092"
+    volumes:
+      - ./.data/sonarqube/sonarqube_conf:/opt/sonarqube/conf
+      - ./.data/sonarqube/sonarqube_data:/opt/sonarqube/data
+      - ./.data/sonarqube/sonarqube_extensions:/opt/sonarqube/extensions
+      - ./.data/sonarqube/sonarqube_bundled-plugins:/opt/sonarqube/lib/bundled-plugins
+
+  postgresdb:
+    image: postgres:12
+    # restart: unless-stopped
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER_VAR}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_VAR}
+      - POSTGRES_DB=${POSTGRES_DB_VAR}
+    networks:
+      - cicd
+    volumes:
+      - ./.data/postgresdb/sonarqube_db:/var/lib/postgresql
+      - ./.data/postgresdb/postgresql_data:/var/lib/postgresql/sonar
+
+  jenkins:
+    build:
+      context: ./images/Jenkins
+      dockerfile: ./Dockerfile
+    # restart: unless-stopped
+    env_file: .env
+    environment:
+      - JENKINS_USER=${JENKINS_USER_VAR}
+      - JENKINS_PASS=${JENKINS_PASS_VAR}
+    networks:
+      - cicd
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./.data/jenkins/jenkins_home:/var/jenkins_home
+      - ./images/Jenkins/casc.yaml:/var/jenkins_home/casc.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+
+networks:
+  cicd:
+
+volumes:
+  sonarqube_conf:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_bundled-plugins:
+  sonarqube_db:
+  postgresql_data:
+  jenkins_home:
