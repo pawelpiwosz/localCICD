@@ -52,9 +52,36 @@ services:
     volumes:
       - ./.data/jenkins/jenkins_home:/var/jenkins_home
       - ./images/Jenkins/casc.yaml:/var/jenkins_home/casc.yaml
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /usr/bin/docker:/usr/bin/docker
+      # - /var/run/docker.sock:/var/run/docker.sock
+      # - /usr/bin/docker:/usr/bin/docker
 
+  web:
+    image: 'gitlab/gitlab-ce:latest'
+    restart: always
+    hostname: 'localhost'
+    container_name: gitlab-ce
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost'
+    ports:
+      - '8081:80'
+    volumes:
+      - ./.data/gitlab/config:/etc/gitlab
+      - ./.data/gitlab/logs:/var/log/gitlab
+      - ./.data/gitlab/data:/var/opt/gitlab
+    networks:
+      - cicd
+  gitlab-runner:
+    image: gitlab/gitlab-runner:alpine
+    container_name: gitlab-runner    
+    restart: always
+    depends_on:
+      - web
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./.data/gitlab/gitlab-runner:/etc/gitlab-runner
+    networks:
+      - cicd
 networks:
   cicd:
 
