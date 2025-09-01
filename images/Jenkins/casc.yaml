@@ -10,6 +10,42 @@ jenkins:
       permissions:
         - "Overall/Administer:${JENKINS_USER}"
         - "Overall/Read:authenticated"
+  nodes:
+    - permanent:
+        name: "buildNodeDefault"
+        remoteFS: "/home/jenkins"
+        numExecutors: 2
+        launcher:
+          ssh:
+            host: "buildNodeDefault"
+            port: 22
+            credentialsId: "build-node-ssh"
+            javaPath: "java"
+            jvmOptions: ""
+            launchTimeoutSeconds: 60
+            maxNumRetries: 3
+            retryWaitTime: 15
+        labelString: "linux ssh"
+        mode: NORMAL
+        retentionStrategy:
+          always: {}
+        nodeProperties: []
+credentials:
+  system:
+    domainCredentials:
+      - domain: 
+          name: ""
+          description: ""
+        credentials:
+          - basicSSHUserPrivateKey:
+              scope: GLOBAL
+              id: "build-node-ssh"
+              username: "jenkins"
+              description: "SSH key for buildNodeDefault"
+              privateKeySource:
+                directEntry:
+                  privateKey: "${JENKINS_BUILDNODE_PRIVATE_KEY}"
+              passphrase: ""
 unclassified:
   locale:
     systemLocale: en

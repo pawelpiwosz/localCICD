@@ -1,7 +1,7 @@
-FROM jenkins/jenkins
+FROM jenkins/jenkins:lts
 
-ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false
-ENV CASC_JENKINS_CONFIG /var/jenkins_home/casc.yaml
+ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
+ENV CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
 
 USER root
 

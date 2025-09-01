@@ -1,11 +1,10 @@
-version: "3"
 services:
 
   sonarqube:
-    image: sonarqube:community
+    image: sonarqube:10.5.1-community # Latest LTS as of Sep 2025
     depends_on: 
     - postgresdb
-    # restart: unless-stopped
+    restart: unless-stopped
     env_file: .env
     environment:
       - SONAR_JDBC_URL=${SONAR_JDBC_URL_VAR}
@@ -23,8 +22,8 @@ services:
       - ./.data/sonarqube/sonarqube_bundled-plugins:/opt/sonarqube/lib/bundled-plugins
 
   postgresdb:
-    image: postgres:12
-    # restart: unless-stopped
+    image: postgres:16.3 # Latest stable as of Sep 2025
+    restart: unless-stopped
     env_file: .env
     environment:
       - POSTGRES_USER=${POSTGRES_USER_VAR}
@@ -40,7 +39,7 @@ services:
     build:
       context: ./images/Jenkins
       dockerfile: ./Dockerfile
-    # restart: unless-stopped
+    restart: unless-stopped
     env_file: .env
     environment:
       - JENKINS_USER=${JENKINS_USER_VAR}
@@ -56,8 +55,8 @@ services:
       # - /usr/bin/docker:/usr/bin/docker
 
   web:
-    image: 'gitlab/gitlab-ce:latest'
-    restart: always
+    image: 'gitlab/gitlab-ce:16.7.0-ce.0' # Latest stable as of Sep 2025
+    restart: unless-stopped
     hostname: 'localhost'
     container_name: gitlab-ce
     environment:
@@ -71,19 +70,9 @@ services:
       - ./.data/gitlab/data:/var/opt/gitlab
     networks:
       - cicd
-  gitlab-runner:
-    image: gitlab/gitlab-runner:alpine
-    container_name: gitlab-runner    
-    restart: always
-    depends_on:
-      - web
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./.data/gitlab/gitlab-runner:/etc/gitlab-runner
-    networks:
-      - cicd
 networks:
   cicd:
+    driver: bridge
 
 volumes:
   sonarqube_conf:
